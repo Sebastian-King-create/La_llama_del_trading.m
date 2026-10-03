@@ -1,2 +1,252 @@
-# La_llama_del_trading.m
-Blacklog_proyecto
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>La llama del Trading</title>
+
+    <style>
+        :root {
+            --bg: #f6f7f4;
+            --card: #ffffff;
+            --ink: #1d2a24;
+            --muted: #66736c;
+            --line: #dde2dc;
+            --accent: #1f6f5c;
+            --accent-ink: #ffffff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #141a17;
+                --card: #1c2420;
+                --ink: #e8ede9;
+                --muted: #9aa8a0;
+                --line: #2c3732;
+                --accent: #4fb89c;
+                --accent-ink: #0c1511;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            line-height: 1.5;
+        }
+
+        header,
+        main,
+        #panel {
+            max-width: 1100px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding-top: 28px;
+            padding-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 1.8rem;
+        }
+
+        header p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fill,
+                minmax(220px, 1fr)
+            );
+            gap: 16px;
+            padding-bottom: 20px;
+        }
+
+        .card {
+            font: inherit;
+            color: var(--ink);
+            text-align: left;
+            cursor: pointer;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card[aria-pressed="true"] {
+            border-color: var(--accent);
+            outline: 2px solid var(--accent);
+        }
+
+        .thumb {
+            height: 120px;
+            display: grid;
+            place-items: center;
+            font-size: 3rem;
+        }
+
+        .body {
+            padding: 14px;
+        }
+
+        .body h2 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .body span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        #panel div {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 40px;
+        }
+
+        #panel h2 {
+            margin: 0 0 6px;
+            font-size: 1.2rem;
+        }
+
+        #panel p {
+            margin: 0;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>La llama del Trading</h1>
+        <p>Tú decides tu futuro</p>
+    </header>
+
+    <main>
+        <div class="grid" id="grid"></div>
+    </main>
+
+    <section id="panel" aria-live="polite"></section>
+
+    <script>
+        const ITEMS = [
+            {
+                t: "¿Qué queremos?",
+                e: "🎯",
+                h: "#cfe6dc",
+                x: "Escribe aquí los objetivos y la meta de tu proyecto."
+            },
+            {
+                t: "¿Quiénes somos?",
+                e: "👥",
+                h: "#e6dccf",
+                x: "Escribe aquí la presentación de tu equipo o empresa."
+            },
+            {
+                t: "Pagos",
+                e: "💳",
+                h: "#d4dbe8",
+                x: "Escribe aquí los medios de pago disponibles."
+            },
+            {
+                t: "Metodología",
+                e: "🧭",
+                h: "#e8d4d9",
+                x: "Escribe aquí cómo trabajas, paso a paso."
+            },
+            {
+                t: "Contactos",
+                e: "📞",
+                h: "#dcd4e8",
+                x: "Escribe aquí tu correo, teléfono y redes."
+            },
+            {
+                t: "Servicios",
+                e: "🛠️",
+                h: "#e8e6d4",
+                x: "Escribe aquí los servicios que ofreces."
+            }
+        ];
+
+        let sel = -1;
+
+        const $ = id => document.getElementById(id);
+
+        function render() {
+            $("grid").innerHTML = "";
+
+            ITEMS.forEach((s, i) => {
+                const b = document.createElement("button");
+
+                b.className = "card";
+                b.setAttribute(
+                    "aria-pressed",
+                    i === sel
+                );
+
+                b.innerHTML = `
+                    <div class="thumb" style="background:${s.h}">
+                        ${s.e}
+                    </div>
+
+                    <div class="body">
+                        <h2>${i + 1}. ${s.t}</h2>
+                        <span>Ver información</span>
+                    </div>
+                `;
+
+                b.onclick = () => {
+                    sel = sel === i ? -1 : i;
+                    render();
+                };
+
+                $("grid").appendChild(b);
+            });
+
+            $("panel").innerHTML =
+                sel < 0
+                    ? ""
+                    : `
+                        <div>
+                            <h2>${ITEMS[sel].t}</h2>
+                            <p>${ITEMS[sel].x}</p>
+                        </div>
+                    `;
+        }
+
+        render();
+    </script>
+
+</body>
+
+</html>
+
