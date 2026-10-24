@@ -87,7 +87,6 @@ dialog .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:cen
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .band{border-block:1px solid var(--line);color:var(--ink)}}
 :root[data-theme="dark"] .band{border-block:1px solid var(--line);color:var(--ink)}
 .band .lead{color:#A9BCC9}
-/* botón de tema */
 .tema{display:inline-flex;align-items:center;gap:8px;font:500 .9rem var(--body);background:none;border:1px solid var(--line);color:var(--ink);padding:7px 14px;border-radius:99px;cursor:pointer}
 .tema .sol{display:none}
 :root[data-theme="dark"] .tema .luna{display:none}
@@ -223,7 +222,7 @@ footer nav{gap:16px}
       <details><summary>¿Van a garantizarme ganancias?</summary><p>No. Nadie puede hacerlo. Enseñamos a analizar, a gestionar el riesgo y a construir un plan; los resultados dependen de ti y del mercado.</p></details>
       <details><summary>¿Cuál formato me conviene?</summary><p>Si estás empezando, las clases grabadas son lo más cómodo. Si necesitas acompañamiento, elige clases en vivo. La mentoría sirve cuando ya practicas y quieres corregir errores.</p></details>
       <details><summary>¿Qué necesito para tomar las clases?</summary><p>Un computador o celular con internet. Para el simulador te explicamos cómo abrir una cuenta demo gratuita.</p></details>
-      <details><summary>¿Cómo se pagan los cursos?</summary><p>Muy pronto podrás pagar en línea desde cada curso. Mientras tanto, déjanos tus datos en el formulario y te contamos cómo inscribirte.</p></details>
+      <details><summary>¿Cómo se pagan los cursos?</summary><p>Pagas en línea desde el detalle de cada curso, con Mercado Pago. Si tienes dudas antes de comprar, déjanos tus datos en el formulario.</p></details>
     </div>
   </div>
 </section>
@@ -245,10 +244,11 @@ footer nav{gap:16px}
   <p><strong>Instructor:</strong> equipo docente de Velas</p>
   <div class="row">
     <span class="price" id="dpr"></span>
-    <button class="btn" disabled title="Los pagos estarán disponibles pronto">Comprar (próximamente)</button>
+    <button class="btn" id="dcomprar" type="button">Comprar</button>
     <button class="btn alt" id="dinfo" type="button">Pedir información</button>
     <button class="btn alt" id="dclose" type="button">Cerrar</button>
   </div>
+  <p id="dpago" role="status" style="margin-top:12px;color:var(--muted);min-height:1.4em"></p>
 </dialog>
 
 <script>
@@ -287,9 +287,28 @@ $("cards").addEventListener("click",function(e){
   $("dp").textContent=cur.s;
   $("dl").innerHTML=cur.m.map(function(m){return "<li>"+m+"</li>"}).join("");
   $("dpr").textContent=cop(cur.p);
+  $("dpago").textContent="";$("dcomprar").disabled=false;
   $("dlg").showModal();
 });
 $("dclose").onclick=function(){$("dlg").close()};
+
+/* pagos con Mercado Pago (backend en Apps Script) */
+var URL_BACKEND="https://script.google.com/macros/s/AKfycbyt1p10RunNToIEFZU8fT1JA0VxBZAw86qCnwD7cKiw9cTFUBW1Q8laiW3ukqnqXHXL/exec";
+var UID_PRUEBA="usuario-prueba"; // cámbialo por el uid real cuando exista el login (S2-03)
+function uidActual(){return window.usuarioActual&&window.usuarioActual.uid?window.usuarioActual.uid:UID_PRUEBA}
+async function comprar(cursoId,uid){
+  var msg=$("dpago"),btn=$("dcomprar");
+  msg.textContent="Preparando tu pago…";btn.disabled=true;
+  try{
+    var r=await fetch(URL_BACKEND,{method:"POST",body:JSON.stringify({accion:"crearPago",cursoId:cursoId,uid:uid})});
+    var d=await r.json();
+    if(d.url){msg.textContent="Te llevamos a Mercado Pago…";location.href=d.url}
+    else{msg.textContent=d.error||"No se pudo crear el pago. Intenta de nuevo.";btn.disabled=false}
+  }catch(e){
+    msg.textContent="No pudimos conectar con el servicio de pago. Revisa tu conexión e intenta de nuevo.";btn.disabled=false;
+  }
+}
+$("dcomprar").onclick=function(){comprar(String(cur.id),uidActual())};
 $("dinfo").onclick=function(){$("dlg").close();$("interes").value=cur.t;location.hash="#info";$("nombre").focus()};
 
 $("interes").innerHTML+=CURSOS.map(function(x){return '<option>'+x.t+'</option>'}).join("");
@@ -323,7 +342,6 @@ function chart(){
   $("svg").innerHTML=s;
 }
 $("regen").onclick=chart;
-
 /* tema claro / oscuro */
 var root=document.documentElement;
 function setTema(t,guardar){
